@@ -1,43 +1,49 @@
 package com.licky.elasticsearch.config;
 
-import org.apache.http.HttpHost;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class ESConfig {
-  @Value("${elasticsearch.host}")
-  private String host; // 127.0.0.1:9200
+  /**
+   * 协议
+   */
+  @Value("${elasticsearch.schema:http}")
+  public String schema;
 
-  @Bean // 高版本客户端
-  public RestHighLevelClient restHighLevelClient() {
-    // 解析 hostlist 配置信息。假如以后有多个，则需要用 ， 分开
-    String[] split = host.split(",");
+  /**
+   * 集群地址，如果有多个用“,”隔开
+   */
+  @Value("${elasticsearch.address}")
+  public String address;
 
-    // 创建 HttpHost 数组，其中存放es主机和端口的配置信息
-    HttpHost[] httpHostArray = new HttpHost[split.length];
-    for (int i = 0; i < split.length; i++) {
-      String item = split[i];
-      httpHostArray[i] =
-          new HttpHost(item.split(":")[0], Integer.parseInt(item.split(":")[1]), "http");
-    }
+  /**
+   * 连接超时时间
+   */
+  @Value("${elasticsearch.connectTimeout}")
+  public int connectTimeout;
 
-    return new RestHighLevelClient(RestClient.builder(httpHostArray));// 创建RestHighLevelClient客户端
-  }
+  /**
+   * Socket 连接超时时间
+   */
+  @Value("${elasticsearch.socketTimeout}")
+  public int socketTimeout;
 
-  @Bean
-  public RestClient restClient() {
-    String[] split = host.split(",");
-    // 创建HttpHost数组，其中存放es主机和端口的配置信息
-    HttpHost[] httpHostArray = new HttpHost[split.length];
-    for (int i = 0; i < split.length; i++) {
-      String item = split[i];
-      httpHostArray[i] =
-          new HttpHost(item.split(":")[0], Integer.parseInt(item.split(":")[1]), "http");
-    }
-    return RestClient.builder(httpHostArray).build();
-  }
+  /**
+   * 获取连接的超时时间
+   */
+  @Value("${elasticsearch.connectionRequestTimeout}")
+  public int connectionRequestTimeout;
+
+  /**
+   * 最大连接数
+   */
+  @Value("${elasticsearch.maxConnectNum}")
+  public int maxConnectNum;
+
+  /**
+   * 最大路由连接数
+   */
+  @Value("${elasticsearch.maxConnectPerRoute}")
+  public int maxConnectPerRoute;
 }
