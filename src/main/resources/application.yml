@@ -2,12 +2,10 @@
 spring:
   application:
     name: springboot-elasticsearch
-#elasticsearch
-elasticsearch:
-  schema: http
-  address: 127.0.0.1:9200
-  connectTimeout: 5000
-  socketTimeout: 5000
-  connectionRequestTimeout: 5000
-  maxConnectNum: 100
-  maxConnectPerRoute: 100
+  data:
+    elasticsearch:
+      ip: 127.0.0.1
+      port: 9200
+      scheme: http
+server:
+  port: 8092
