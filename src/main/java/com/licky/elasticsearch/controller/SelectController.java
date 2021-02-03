@@ -10,12 +10,14 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.sql.rowset.serial.SerialException;
 import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.BucketOrder;
@@ -45,26 +47,16 @@ public class SelectController {
       RestHighLevelClient client = elasticsearchConfig.getClient();
       SearchRequest searchRequest = new SearchRequest(INDEX_PAGEACCESS);
       SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-      sourceBuilder.size(0);
 
-      //字段值项分组聚合
-      //TermsAggregationBuilder aggregation = AggregationBuilders.terms("sex")
-      //    .field("method.keyword")
-      //    .order(BucketOrder.aggregation("count", true));
-      //aggregation.subAggregation(AggregationBuilders.count("count").field("_sessionid"));
-      //sourceBuilder.aggregation(aggregation);
-      //searchRequest.source(sourceBuilder);
+      TermsAggregationBuilder aggregationBuilder = AggregationBuilders.terms("sex_count").field("sex");
+      sourceBuilder.aggregation(aggregationBuilder);
+      searchRequest.source(sourceBuilder);
 
       SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
-      if (searchResponse.status() != RestStatus.OK) throw new SerialException("ES search Error");
-      if (searchResponse.getHits().getTotalHits() <= 0) {
-        throw new SerialException("data not found");
-      }
-      SearchHits hits = searchResponse.getHits();
-      ArrayList response = new ArrayList();
-      for (SearchHit hit : hits) {
-        Map<String,Object> source = hit.getSourceAsMap();
-        response.add(source);
+      Terms byAgeAggregation = searchResponse.getAggregations().get("sex_count");
+      HashMap<String, String> response = new HashMap<>();
+      for (Terms.Bucket bucket : byAgeAggregation.getBuckets()) {
+        response.put("性别" + bucket.getKeyAsString(), "数目" + bucket.getDocCount());
       }
 
       return ResponseEntity.ok(response);
@@ -81,7 +73,7 @@ public class SelectController {
       //    ParsedValueCount averageBalance = buck.getAggregations().get("count");
       //    System.out.println("average_balance: " + averageBalance.getValue());
       //  }
-        //直接用key 来去分组
+      //直接用key 来去分组
         /*Bucket elasticBucket = byCompanyAggregation.getBucketByKey("24");
         Avg averageAge = elasticBucket.getAggregations().get("average_age");
         double avg = averageAge.getValue();*/
