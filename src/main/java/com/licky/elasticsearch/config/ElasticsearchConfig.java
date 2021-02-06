@@ -1,23 +1,23 @@
 package com.licky.elasticsearch.config;
 
-import lombok.Data;
+import javax.annotation.Resource;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties(prefix = "spring.data.elasticsearch")
-@Data
 public class ElasticsearchConfig {
 
-  private String ip;
-  private Integer port;
-  private String scheme;
+  @Resource
+  ESProps esProps;
 
+  @Bean
   public RestHighLevelClient getClient() {
-    return new RestHighLevelClient(
-        RestClient.builder(new HttpHost(ip, port, scheme)));
+    String ip = esProps.getIp();
+    Integer port = esProps.getPort();
+    String scheme = esProps.getScheme();
+    return new RestHighLevelClient(RestClient.builder(new HttpHost(ip, port, scheme)));
   }
 }
