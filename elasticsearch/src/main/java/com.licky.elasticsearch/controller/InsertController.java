@@ -1,17 +1,16 @@
 package com.licky.elasticsearch.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.licky.elasticsearch.config.ESProps;
 import com.licky.elasticsearch.config.ElasticsearchConfig;
+import com.licky.elasticsearch.exceptions.AppException;
 import com.licky.elasticsearch.models.UserInfo;
+import com.licky.elasticsearch.utils.ResultUtils;
+import com.licky.elasticsearch.utils.ValidationUtils;
 import java.io.IOException;
-import java.rmi.ServerException;
-import java.util.Objects;
 import javax.annotation.Resource;
 import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.common.xcontent.XContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -29,17 +28,19 @@ public class InsertController {
   ESProps esProps;
 
   @RequestMapping(value = "/es/insert", method = RequestMethod.POST)
-  public boolean insertData(@RequestBody String content) throws ServerException {
-    //UserInfo userInfo = JSON.parseObject(content, UserInfo.class);
+  public ResponseEntity<ResultUtils> insertData(@RequestBody UserInfo userInfo)
+      throws AppException {
     try {
+      ValidationUtils.validate(userInfo); //参数校验
       IndexRequest indexRequest =
           new IndexRequest(esProps.getLocal_es_index(), esProps.getLocal_es_type());
-      indexRequest.source(content, XContentType.JSON);
+      indexRequest.source(userInfo, XContentType.JSON);
       elasticsearchConfig.getClient().index(indexRequest);
-      return true;
-    } catch (IOException e) {
-      e.printStackTrace();
-      return false;
+      return ResponseEntity.ok(
+          ResultUtils.builder().code(200).message("success").data(null).build());
+    } catch (AppException | IOException e) {
+      return ResponseEntity.ok(
+          ResultUtils.builder().code(522).message(e.getMessage()).data(null).build());
     }
   }
 }

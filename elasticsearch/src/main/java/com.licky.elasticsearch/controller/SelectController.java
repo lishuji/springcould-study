@@ -2,6 +2,7 @@ package com.licky.elasticsearch.controller;
 
 import com.licky.elasticsearch.config.ESProps;
 import com.licky.elasticsearch.config.ElasticsearchConfig;
+import com.licky.elasticsearch.utils.ResultUtils;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Resource;
@@ -29,7 +30,7 @@ public class SelectController {
 
   @ResponseBody
   @RequestMapping(value = "/es/select", method = RequestMethod.GET)
-  public ResponseEntity select() {
+  public ResponseEntity<ResultUtils> select() {
     try {
       RestHighLevelClient client = elasticsearchConfig.getClient();
       SearchRequest searchRequest = new SearchRequest(esProps.getLocal_es_index());
@@ -57,10 +58,11 @@ public class SelectController {
       for (SearchHit hit : hits) {
         resource = hit.getSourceAsMap();
       }
-      return ResponseEntity.ok(resource);
+      return ResponseEntity.ok(
+          ResultUtils.builder().code(200).message("ok").data(resource).build());
     } catch (Exception e) {
-      e.printStackTrace();
+      return ResponseEntity.ok(
+          ResultUtils.builder().code(522).message(e.getMessage()).data(null).build());
     }
-    return null;
   }
 }
